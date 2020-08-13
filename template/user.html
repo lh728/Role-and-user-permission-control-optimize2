@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./style.css">
+    <title>Title</title>
+    <script>
+    function toPage2(curl){
+        curl = curl+"?userId="+$("#userId").val()+"&userName="+$("#userName").val();
+        $("#contentdiv").load(curl,null,function(){/*alert("加载成功")*/});
+    }
+    function toPage3(curl){
+        $("#contentdiv").load(curl,null,function(){/*alert("加载成功")*/});
+    }
+    function toPage4(curl){
+        curl = curl+"?userId="+$("#userId").val()+"&userName="+$("#userName").val();
+        $("#contentdiv").load(curl,null,function(){/*alert("加载成功")*/});
+    }
+    function toPage5(curl,hasNext,getNumber,totalPages){
+        if (getNumber + 1 > totalPages){
+            curl = curl+"?pageNum="+ getNumber+"&userId="+$("#userId").val()+"&userName="+$("#userName").val();
+        }
+        else{
+            curl = curl+"?pageNum="+ (getNumber+1)+"&userId="+$("#userId").val()+"&userName="+$("#userName").val();
+        }
+        $("#contentdiv").load(curl,null,function(){/*alert("加载成功")*/});
+    }
+    function toPage6(curl,hasPrevious,getNumber){
+        curl = curl+"?pageNum="+ (getNumber-1)+"&userId="+$("#userId").val()+"&userName="+$("#userName").val();
+        $("#contentdiv").load(curl,null,function(){/*alert("加载成功")*/});
+    }
+    function openNew() {
+        //获取页面的总高度 宽度
+        let scrollHeight = document.documentElement.scrollHeight;
+        let scrollWidth = document.documentElement.scrollWidth;
+        let mark = document.createElement("div")
+        mark.id = "mark";
+        mark.style.width = scrollWidth + "px";
+        mark.style.height = scrollHeight + "px";
+        let login = document.createElement("div")
+        login.id = "login"
+        login.innerHTML =
+            "<body align=\"center\">\n" +
+            "<div>\n" +
+            "<h1>给用户设置一个角色：</h1>\n" +
+            "<input type=\"text\" id=\"userName2\" name=\"userName2\" placeholder=\"userName\" maxlength=\"20\" required=\"required\">\n" +
+            "<select id=\"roleName\" name=\"roleName\">\n" +
+            "    <option>请选择</option>\n" +
+            "    <option>管理员</option>\n" +
+            "    <option>用户</option>\n" +
+            "</select>\n" +
+            "<input type=\"submit\" value=\"提交\" onclick='tosave()' >\n" +
+            "</div>\n" +
+            "<div>\n"+
+            "<button id='close'>关闭</button>\n"+
+            "</div>\n" +
+            "</body>"
+        //获得可视区域的高度宽度
+        let clientWidth = document.documentElement.clientWidth;
+        let clientHeight = document.documentElement.clientHeight;
+        document.body.appendChild(login)
+        document.body.appendChild(mark)
+        //获取登录框的高度宽度
+        let LoginWidth = login.offsetWidth;
+        let LoginHeight = login.offsetHeight;
+        let leftFixed = (clientWidth - LoginWidth) / 2 + "px"
+        let topFixed = (clientHeight - LoginHeight) / 2 + "px"
+        login.style.left = leftFixed;
+        login.style.top = topFixed;
+        let close = document.getElementById("close")
+        mark.onclick = close.onclick = function() {
+            document.body.removeChild(mark)
+            document.body.removeChild(login)
+        }
+    }
+    function test() {
+        openNew()
+    }
+    function tosave(){
+        var userName = $("#userName2");
+        var roleName = $("#roleName");
+        $.ajax({
+            url: "/adduser",
+            data: {userName: userName.val(), roleName: roleName.val()},
+            success: function (result) {
+                console.log(result)
+                reloadThisPage()
+                document.getElementById("close").click();
+            }
+
+        });
+    }
+    function reloadThisPage() {
+        $("#contentdiv").load("/user",null,function(){/*alert("加载成功")*/});
+    }
+    function toPageAsk(curl){
+        curl = curl.replace('"','').replace('"','');
+        $("#contentdiv").load(curl,null,function(){/*alert("加载成功")*/});
+    }
+    function deleteByUserName(userName){
+        var url = "/deleteByUserName/" + userName;
+        alert("删除成功");
+        location.href = url;
+    }
+    function pitchOn(){
+        var check=document.getElementsByName("aa");
+        var alc=document.getElementById("bb");
+        var txt=document.getElementsByClassName("cc");
+        var isd = alc.checked;
+        if(isd){
+            txt[0].innerText="取消全选";
+        }else{
+            txt[0].innerText="全选";
+        }
+        for(var i=0;i<check.length;i++){
+            check[i].checked=isd;
+        }
+    }
+    function delArc(){
+        var ids=[] ;
+        $('input[name="aa"]:checked').each(function(){
+            ids.push($(this).attr("id"));
+        });
+        alert(ids)
+        $.ajax({
+            url:"/deletes",
+            type:"get",
+            dataType:"json",
+            data:{
+                "fitList":ids.toString()},
+            success : function(result) {
+                // 删除成功后刷新页面
+                console.log(result)
+                reloadThisPage()
+            },
+            error : function() {
+                alert("请求失败");
+            },
+            dataType : "text"
+
+
+        })
+    }
+
+
+    </script>
+
+</head>
+<body>
+<div align="center">
+    <h1>学生管理系统权限控制</h1>
+</div>
+<div>根据ID搜索：<input type="text" name="userId" id="userId" placeholder="userId" maxlength="20" required="required" ><!--th:value="${userId}"-->
+    根据用户名搜索：<input type="text" name="userName" id="userName" placeholder="userName" maxlength="20" required="required"><!--th:value="${userName}"-->
+    <input type="button" name="id" value="搜索" onclick="toPage2('/user')">
+</div>
+<footer class="footer">
+    <button id="btn" onclick="test()">给用户设置角色</button>
+</footer>
+
+<div class="tablebox">
+    <table align="center" border="0" cellpadding="0" id="tableId" cellspacing="0">
+        <thead>
+        <tr>
+            <th><input type="checkbox" id="bb" onclick="pitchOn()" /><span class="cc">全选</span></th>
+            <th>UserId</th>
+            <th>UserName</th>
+            <th>角色</th>
+            <th>修改</th>
+            <th>根据用户名删除</th>
+        </tr>
+        </thead>
+        <tr th:each="show:${findUser}" >
+            <td><input type="checkbox"name="aa" th:id="${show.userId}"></td>
+            <td th:text="${show.userId}"></td>
+            <td th:text="${show.userName}"></td>
+            <td th:text="${show.roles.size() == 0 ? '无' : show.roles[0].roleName}"></td>
+            <td><a href="#" th:onclick="toPageAsk('/updateUserInfo/[[${show.userId}]]')">修改</a></td>
+            <td><a href="#" th:onclick="toPageAsk('/deleteByUserName/[[${show.userName}]]')">删除</a></td>
+        </tr>
+    </table>
+</div>
+<p>当前<span th:text="${findUser.getNumber()} + 1"></span>页,总<span th:text="${findUser.totalPages}"></span>页 共<span th:text="${findUser.totalElements}"></span>条记录
+    <a href="#" th:onclick="toPage4('/user')">首页</a>
+    <a href="#" th:onclick="toPage6('/user',[[${findUser.hasPrevious()}]],[[${pageNum}]])">上一页</a>
+    <a href="#" th:onclick="toPage5('/user',[[${findUser.hasNext()}]],[[${pageNum}]],[[${findUser.totalPages}]])">下一页</a>
+    <a href="#" th:onclick="toPage3('/user?pageNum=[[${findUser.totalPages}]]')">尾页</a></p>
+<footer class="footer">
+    <button id="btn2" onclick="delArc()">批量删除</button>
+</footer>
+</body>
+</html>
